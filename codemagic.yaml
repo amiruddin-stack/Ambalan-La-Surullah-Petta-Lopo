@@ -2,24 +2,50 @@ workflows:
   android-workflow:
     name: Build Android APK
     max_build_duration: 30
-    instance_type: mac_mini_m1
+    instance_type: linux_x2
     environment:
-      node: 22
+      node: 20
       java: 17
     scripts:
-      - name: Install dependencies & Build Web
+      - name: 1. Install Dependencies & Build Web
         script: |
-          npm install --legacy-peer-deps || npm install --force
+          npm install
           npm run build
-      - name: Sync Capacitor
+
+      - name: 2. Setup Capacitor & Android Project
         script: |
-          npx cap add android || true
-          npx cap copy android
+          # Pastikan Capacitor terpasang
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          
+          # Buat folder android jika belum ada
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+          
+          # Sinkronkan kode web ke proyek Android
           npx cap sync android
-      - name: Build Android APK
+
+      - name: 3. Konfigurasi SDK & Build APK dengan Gradle
         script: |
           cd android
+          
+          # Hubungkan Android SDK Codemagic ke Gradle
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+          
+          # Berikan izin eksekusi gradlew
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          
+          # Build APK Debug
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
     artifacts:
       - android/app/build/outputs/apk/debug/*.apk
+      - android/app/build/outputs/**/*.apk
+
+    publishing:
+      email:
+        recipients:
+          - amiruddin@smpialwasi-maros.sch.id
+        notify:
+          success: true
+          failure: true
