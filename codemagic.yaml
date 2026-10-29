@@ -14,11 +14,12 @@ workflows:
       - name: Sync Capacitor
         script: |
           npx cap add android || true
+          npx cap copy android
           npx cap sync android
       - name: Build Android APK
         script: |
           cd android
           chmod +x gradlew
-          ./gradlew clean assembleDebug --stacktrace
+          ./gradlew assembleDebug --no-daemon
     artifacts:
       - android/app/build/outputs/apk/debug/*.apk
