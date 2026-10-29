@@ -1,0 +1,6 @@
+{
+  "name": "Ambalan La Surullah Petta Lopo",
+  "description": "Aplikasi Resmi Ambalan La Surullah Petta Lopo Gudep 10-035 & 10-036 berbasis Android dengan fitur SKU/SKK, Sandi Morse & Semaphore, Agenda, Logbook, dan Sejarah.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
