@@ -97,6 +97,30 @@ jobs:
       - name: Sync Capacitor
         run: bunx cap sync android
 
+      - name: Configure Android APK installer access
+        run: |
+          mkdir -p android/app/src/main/res/xml
+          cat > android/app/src/main/res/xml/file_paths.xml <<'XML'
+          <?xml version="1.0" encoding="utf-8"?>
+          <paths xmlns:android="http://schemas.android.com/apk/res/android">
+              <files-path name="files" path="." />
+              <cache-path name="cache" path="." />
+              <external-files-path name="external-files" path="." />
+              <external-cache-path name="external-cache" path="." />
+          </paths>
+          XML
+          python - <<'PY'
+          from pathlib import Path
+          manifest = Path("android/app/src/main/AndroidManifest.xml")
+          content = manifest.read_text()
+          permission = '    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />'
+          if "android.permission.REQUEST_INSTALL_PACKAGES" not in content:
+              content = content.replace("<manifest", "<manifest", 1)
+              insert_at = content.find(">", content.find("<manifest")) + 1
+              content = content[:insert_at] + "\\n" + permission + content[insert_at:]
+          manifest.write_text(content)
+          PY
+
       - name: Apply Pettalopo Native Splash Image
         run: |
           python -m pip install --quiet pillow
