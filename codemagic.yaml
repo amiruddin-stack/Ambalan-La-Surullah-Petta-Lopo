@@ -23,10 +23,27 @@ workflows:
       - name: Setup Android
         script: |
           set -e
+
           if [ ! -d android ]; then
             npx cap add android
           fi
+
           npx cap sync android
+
+      - name: Install Android SDK Components
+        script: |
+          set -e
+
+          SDKMANAGER=$(command -v sdkmanager)
+
+          if [ -z "$SDKMANAGER" ]; then
+            echo "sdkmanager tidak ditemukan"
+            exit 1
+          fi
+
+          yes | "$SDKMANAGER" --licenses || true
+
+          "$SDKMANAGER" --install "build-tools;35.0.0"
 
       - name: Build Android APK
         script: |
