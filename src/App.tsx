@@ -19,6 +19,7 @@ import { QuizPramukaView } from './components/views/QuizPramukaView';
 import { ChatAmbalanView } from './components/views/ChatAmbalanView';
 import { PengaturanView } from './components/views/PengaturanView';
 import { AmbalanAuthModal } from './components/auth/AmbalanAuthModal';
+import { UpdateChecker } from './components/UpdateChecker';
 
 import { ActiveMenu, ProgramKerjaItem, UserAccount } from './types';
 import { 
@@ -154,6 +155,8 @@ export default function App() {
       {/* Main Native App Container */}
       <div className="w-full max-w-lg mx-auto min-h-screen bg-white shadow-xl flex flex-col relative">
         
+        <UpdateChecker />
+
         {/* Top App Bar with Role Badge */}
         <CleanTopAppBar
           title={getHeaderTitle()}
