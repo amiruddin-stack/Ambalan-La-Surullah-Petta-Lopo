@@ -97,6 +97,24 @@ jobs:
       - name: Sync Capacitor
         run: bunx cap sync android
 
+      - name: Apply Pettalopo Native Splash Image
+        run: |
+          python -m pip install --quiet pillow
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+
+          source = Image.open("public/assets/pettalopo-logo.png").convert("RGBA")
+          size = 2732
+          canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+          source.thumbnail((int(size * 0.68), int(size * 0.68)), Image.Resampling.LANCZOS)
+          canvas.alpha_composite(source, ((size - source.width) // 2, (size - source.height) // 2))
+
+          target = Path("android/app/src/main/res/drawable")
+          target.mkdir(parents=True, exist_ok=True)
+          canvas.save(target / "splash.png", optimize=True)
+          PY
+
       - name: Build Debug APK
         run: |
           cd android
