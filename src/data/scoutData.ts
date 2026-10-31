@@ -1,6 +1,6 @@
 import { SkuItem, SkkItem, AgendaEvent, UserProfile, LogbookEntry, AttendanceRecord } from '../types';
 
-export const LOGO_IMAGE_PATH = '/assets/aistudio/3_20261030_082522_0002_63647e9e.png';
+export const LOGO_IMAGE_PATH = '/assets/pettalopo-logo.png';
 
 export const DEFAULT_USER_PROFILE: UserProfile = {
   name: 'Amiruddin S.',
