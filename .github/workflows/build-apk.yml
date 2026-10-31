@@ -7,7 +7,7 @@ on:
       - main
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-apk:
@@ -115,15 +115,42 @@ jobs:
           canvas.save(target / "splash.png", optimize=True)
           PY
 
-      - name: Build Debug APK
+      - name: Set Android app version
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          package = json.loads(Path("package.json").read_text())
+          version = package["version"]
+          version_code = int(package["androidVersionCode"])
+          gradle = Path("android/app/build.gradle")
+          content = gradle.read_text()
+          import re
+          content, count_code = re.subn(r'versionCode\\s+\\d+', f'versionCode {version_code}', content, count=1)
+          content, count_name = re.subn(r'versionName\\s+"[^"]+"', f'versionName "{version}"', content, count=1)
+          if count_code != 1 or count_name != 1:
+              raise SystemExit("Could not safely set Android versionCode/versionName")
+          gradle.write_text(content)
+          PY
+
+      - name: Build Release APK
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug --stacktrace
 
-      - name: Upload APK
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.event.repository.name }}-${{ github.run_number }}
+          name: Pettalopo Mobile v${{ github.event.repository.name }}-${{ github.run_number }}
+          generate_release_notes: true
+          files: android/app/build/outputs/apk/debug/app-debug.apk
+          make_latest: true
+
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Ambalan-La-Surullah-APK
+          name: Pettalopo-Mobile-v${{ github.run_number }}
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 14
