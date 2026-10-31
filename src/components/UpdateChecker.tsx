@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
+import { App } from '@capacitor/app';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { FileOpener } from '@capawesome-team/capacitor-file-opener';
@@ -45,7 +46,10 @@ export function UpdateChecker() {
         if (!response.ok) return;
         const latest: ReleaseInfo = await response.json();
         const latestVersion = (latest.tag_name || '').replace(/^v/i, '');
-        if (!latestVersion || compareVersions(latestVersion, CURRENT_VERSION) <= 0) return;
+        const installedVersion = Capacitor.isNativePlatform()
+          ? (await App.getInfo()).version
+          : CURRENT_VERSION;
+        if (!latestVersion || compareVersions(latestVersion, installedVersion) <= 0) return;
 
         const apk = latest.assets?.find((asset) => asset.name.toLowerCase().endsWith('.apk'));
         if (!apk || !active) return;
