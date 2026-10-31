@@ -23,27 +23,46 @@ workflows:
       - name: Setup Android
         script: |
           set -e
-
           if [ ! -d android ]; then
             npx cap add android
           fi
-
           npx cap sync android
 
-      - name: Install Android SDK Components
+      - name: Prepare Android SDK
         script: |
           set -e
 
-          SDKMANAGER=$(command -v sdkmanager)
+          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/share/android-sdk}}"
 
-          if [ -z "$SDKMANAGER" ]; then
-            echo "sdkmanager tidak ditemukan"
+          echo "Android SDK: $SDK_ROOT"
+
+          if [ ! -d "$SDK_ROOT" ]; then
+            echo "ERROR: Android SDK directory not found"
             exit 1
           fi
 
-          yes | "$SDKMANAGER" --licenses || true
+          SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
 
-          "$SDKMANAGER" --install "build-tools;35.0.0"
+          if [ ! -f "$SDKMANAGER" ]; then
+            SDKMANAGER=$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager 2>/dev/null | head -1 || true)
+          fi
+
+          if [ ! -f "$SDKMANAGER" ]; then
+            echo "ERROR: sdkmanager not found"
+            exit 1
+          fi
+
+          echo "SDK Manager: $SDKMANAGER"
+
+          printf 'sdk.dir=%s\n' "$SDK_ROOT" > android/local.properties
+
+          yes | "$SDKMANAGER" --sdk_root="$SDK_ROOT" --licenses || true
+
+          "$SDKMANAGER" --sdk_root="$SDK_ROOT" --install "build-tools;35.0.0"
+
+          test -d "$SDK_ROOT/build-tools/35.0.0"
+
+          echo "Android SDK preparation completed"
 
       - name: Build Android APK
         script: |
