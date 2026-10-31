@@ -3,7 +3,7 @@ import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Download, X, RefreshCw, Smartphone } from 'lucide-react';
 
-const CURRENT_VERSION = '1.0.0';
+const CURRENT_VERSION = '1.0.1';
 const RELEASES_API = 'https://api.github.com/repos/amiruddin-stack/Ambalan-La-Surullah-Petta-Lopo/releases/latest';
 
 type ReleaseInfo = {
