@@ -1,225 +1,288 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { AndroidStatusBar } from './components/AndroidStatusBar';
-import { AndroidTopAppBar } from './components/AndroidTopAppBar';
-import { AndroidNavigationDrawer } from './components/AndroidNavigationDrawer';
-import { AndroidBottomNav } from './components/AndroidBottomNav';
-import { AndroidFAB } from './components/AndroidFAB';
-import { NotificationsModal } from './components/NotificationsModal';
+import React, { useState, useEffect } from 'react';
+import { SplashScreen } from './components/SplashScreen';
+import { CleanTopAppBar } from './components/CleanTopAppBar';
+import { AndroidSidebar } from './components/AndroidSidebar';
+import { FloatingBottomNav } from './components/FloatingBottomNav';
 
 // Views
 import { HomeView } from './components/views/HomeView';
-import { SkuTrackerView } from './components/views/SkuTrackerView';
-import { SandiMorseView } from './components/views/SandiMorseView';
-import { LontaraView } from './components/views/LontaraView';
-import { PioneringView } from './components/views/PioneringView';
-import { AgendaPresensiView } from './components/views/AgendaPresensiView';
+import { DashboardView } from './components/views/DashboardView';
+import { ProgramKerjaView } from './components/views/ProgramKerjaView';
+import { SkuSkkView } from './components/views/SkuSkkView';
+import { RuangBelajarView } from './components/views/RuangBelajarView';
+import { LatihanRutinView } from './components/views/LatihanRutinView';
+import { AkunView } from './components/views/AkunView';
+import { DatabaseAnggotaView } from './components/views/DatabaseAnggotaView';
 import { ProfilAmbalanView } from './components/views/ProfilAmbalanView';
-import { LogbookView } from './components/views/LogbookView';
-import { DasaDarmaView } from './components/views/DasaDarmaView';
+import { SanggaView } from './components/views/SanggaView';
+import { QuizPramukaView } from './components/views/QuizPramukaView';
+import { ChatAmbalanView } from './components/views/ChatAmbalanView';
+import { PengaturanView } from './components/views/PengaturanView';
+import { AmbalanAuthModal } from './components/auth/AmbalanAuthModal';
 
-import { NavigationTab, UserProfile, SkuItem } from './types';
-import { DEFAULT_USER_PROFILE, INITIAL_SKU_ITEMS } from './data/scoutData';
+import { ActiveMenu, ProgramKerjaItem, UserAccount } from './types';
+import { 
+  subscribeToProgramKerja, 
+  syncUserProfile, 
+  subscribeToAllMembers,
+  DEFAULT_SEED_MEMBERS 
+} from './services/firebaseService';
+import { DEFAULT_PROGRAM_KERJA_ITEMS } from './data/defaultProgramKerja';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<NavigationTab>('home');
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [isNotifOpen, setIsNotifOpen] = useState(false);
-  const [isDeviceFrame, setIsDeviceFrame] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
+  const [activeMenu, setActiveMenu] = useState<ActiveMenu>('home');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-  // User Profile
-  const [profile, setProfile] = useState<UserProfile>(() => {
-    const saved = localStorage.getItem('ambalan_user_profile');
+  // Live All Members in Ambalan
+  const [allMembers, setAllMembers] = useState<UserAccount[]>(DEFAULT_SEED_MEMBERS);
+
+  // User Account State with Role (Admin vs Anggota)
+  const [user, setUser] = useState<UserAccount>(() => {
+    const saved = localStorage.getItem('ambalan_user_account_v3');
     if (saved) {
-      try { return JSON.parse(saved); } catch {}
+      try { 
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.username) return parsed;
+      } catch {}
     }
-    return DEFAULT_USER_PROFILE;
+    // Default bootstrapped admin based on user credentials
+    return {
+      uid: 'admin_pembina_01',
+      username: 'admin',
+      password: 'ambalan10035',
+      email: 'amiruddin@smpialwasi-maros.sch.id',
+      nama: 'Amiruddin S., S.Pd.',
+      role: 'admin',
+      gudep: '10-035',
+      satuan: 'Putra',
+      tingkat: 'Penegak Garuda',
+      sangga: 'Perintis',
+      jabatan: 'Pembina Gugus Depan',
+      nomorKta: '10.035.1985.001',
+      createdAt: '2026-07-01'
+    };
   });
 
-  // SKU Items State with LocalStorage
-  const [skuItems, setSkuItems] = useState<SkuItem[]>(() => {
-    const saved = localStorage.getItem('ambalan_sku_items');
+  // Program Kerja List State
+  const [programKerjaList, setProgramKerjaList] = useState<ProgramKerjaItem[]>(() => {
+    const saved = localStorage.getItem('ambalan_program_kerja');
     if (saved) {
-      try { return JSON.parse(saved); } catch {}
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch {}
     }
-    return INITIAL_SKU_ITEMS;
+    return DEFAULT_PROGRAM_KERJA_ITEMS;
   });
 
-  // Save changes
+  const isAdmin = user.role === 'admin';
+
+  // Persist and sync user
   useEffect(() => {
-    localStorage.setItem('ambalan_user_profile', JSON.stringify(profile));
-  }, [profile]);
+    localStorage.setItem('ambalan_user_account_v3', JSON.stringify(user));
+    syncUserProfile(user).catch(() => {});
+  }, [user]);
 
+  // Persist program kerja locally
   useEffect(() => {
-    localStorage.setItem('ambalan_sku_items', JSON.stringify(skuItems));
-  }, [skuItems]);
+    localStorage.setItem('ambalan_program_kerja', JSON.stringify(programKerjaList));
+  }, [programKerjaList]);
 
-  // Audio Context Ref for SOS Morse Whistle
-  const audioCtxRef = useRef<AudioContext | null>(null);
-
-  const triggerSosSignal = async () => {
-    try {
-      if (!audioCtxRef.current) {
-        const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-        audioCtxRef.current = new AudioContextClass();
+  // Real-time Firestore sync for Members
+  useEffect(() => {
+    const unsubscribe = subscribeToAllMembers((members) => {
+      if (members && members.length > 0) {
+        setAllMembers(members);
       }
-      const ctx = audioCtxRef.current;
-      if (ctx.state === 'suspended') ctx.resume();
+    });
 
-      // SOS Morse pattern: ... --- ...
-      const pattern = [
-        { type: 'dot', dur: 100 },
-        { type: 'dot', dur: 100 },
-        { type: 'dot', dur: 100 },
-        { type: 'dash', dur: 300 },
-        { type: 'dash', dur: 300 },
-        { type: 'dash', dur: 300 },
-        { type: 'dot', dur: 100 },
-        { type: 'dot', dur: 100 },
-        { type: 'dot', dur: 100 }
-      ];
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
 
-      for (const p of pattern) {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.frequency.setValueAtTime(800, ctx.currentTime);
-        gain.gain.setValueAtTime(0.3, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + p.dur / 1000);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-
-        await new Promise(r => setTimeout(r, p.dur));
-        try { osc.stop(); osc.disconnect(); } catch {}
-        await new Promise(r => setTimeout(r, 100));
+  // Real-time Firestore sync for Program Kerja
+  useEffect(() => {
+    const unsubscribe = subscribeToProgramKerja(
+      (items) => {
+        if (items && items.length > 0) {
+          setProgramKerjaList(items);
+        }
+      },
+      (err) => {
+        console.warn('Real-time proker sync falling back to local storage:', err);
       }
-    } catch {
-      // Audio fallback
-    }
-  };
+    );
 
-  const handleToggleGudep = () => {
-    setProfile(prev => ({
-      ...prev,
-      gudep: prev.gudep === '10-035' ? '10-036' : '10-035',
-      gender: prev.gudep === '10-035' ? 'putri' : 'putra',
-      jabatan: prev.gudep === '10-035' ? 'Pradana Putri' : 'Pradana Putra'
-    }));
-  };
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
 
-  // Title calculation for Top App Bar
-  const getTabTitle = () => {
-    switch (activeTab) {
-      case 'home': return 'Ambalan La Surullah';
-      case 'sku': return 'Buku Kontrol SKU';
-      case 'sandi': return 'Sandi Morse & Senter';
-      case 'lontara': return 'Aksara Lontara Bugis';
-      case 'pionering': return 'Tali Temali Pionering';
-      case 'agenda': return 'Agenda Kegiatan';
-      case 'presensi': return 'Presensi Sangga';
-      case 'profil': return 'Filosofi Lambang & Tokoh';
-      case 'logbook': return 'Catatan Logbook';
-      case 'dasadarma': return 'Tri Satya & Dasa Darma';
+  // Page title mapper
+  const getHeaderTitle = () => {
+    switch (activeMenu) {
+      case 'home': return 'Beranda';
+      case 'dashboard':
+      case 'kegiatan_latihan':
+        return 'Kegiatan dan Latihan';
+      case 'profil_ambalan': return 'Profil Ambalan';
+      case 'sangga': return 'Sangga Ambalan';
+      case 'sku_skk': return 'SKU dan SKK Penegak';
+      case 'ruang_belajar': return 'Ruang Belajar Digital';
+      case 'quiz': return 'Quiz Kepramukaan';
+      case 'chat': return 'Obrolan Ambalan';
+      case 'pengaturan': return 'Pengaturan';
+      case 'program_kerja': return 'Program Kerja Tahunan';
+      case 'latihan_rutin': return 'Jadwal & Absensi Latihan';
+      case 'akun': return 'Akun & Profil Anggota';
+      case 'database': return 'Database Akun & Anggota';
       default: return 'Ambalan La Surullah';
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-800 flex flex-col items-center justify-center font-sans antialiased sm:py-4 sm:px-2">
+    <div className="min-h-screen bg-slate-100 flex flex-col font-sans antialiased text-slate-800">
       
-      {/* Device Frame Wrapper (Android Frame or Full Web Responsive) */}
-      <div className={`w-full transition-all duration-300 ${
-        isDeviceFrame 
-          ? 'max-w-[440px] sm:h-[900px] sm:max-h-[96vh] sm:rounded-[42px] sm:ring-8 sm:ring-slate-800 sm:shadow-2xl sm:border-4 sm:border-slate-700/60 overflow-hidden flex flex-col bg-white relative' 
-          : 'max-w-4xl min-h-screen sm:min-h-0 sm:rounded-3xl bg-white shadow-xl flex flex-col relative overflow-hidden'
-      }`}>
-        
-        {/* Android Status Bar */}
-        <AndroidStatusBar />
+      {/* 1. Splash Screen selama 3 detik */}
+      {showSplash && (
+        <SplashScreen onFinish={() => setShowSplash(false)} />
+      )}
 
-        {/* Android Top App Bar */}
-        <AndroidTopAppBar
-          title={getTabTitle()}
-          subtitle={`Gudep ${profile.gudep} (${profile.gender === 'putra' ? 'Putra' : 'Putri'})`}
-          onOpenDrawer={() => setIsDrawerOpen(true)}
-          onOpenNotifications={() => setIsNotifOpen(true)}
-          isDeviceFrame={isDeviceFrame}
-          onToggleDeviceFrame={() => setIsDeviceFrame(!isDeviceFrame)}
+      {/* Main Native App Container */}
+      <div className="w-full max-w-lg mx-auto min-h-screen bg-white shadow-xl flex flex-col relative">
+        
+        {/* Top App Bar with Role Badge */}
+        <CleanTopAppBar
+          title={getHeaderTitle()}
+          subtitle={`Gudep ${user.gudep}`}
+          userRole={user.role}
+          onNavigateToAkun={() => setActiveMenu('akun')}
+          onOpenSidebar={() => setIsSidebarOpen(true)}
+          onOpenAuthModal={() => setIsAuthModalOpen(true)}
         />
 
-        {/* Main View Scroll Area (Dominant White Background with subtle contrast) */}
-        <main className="flex-1 overflow-y-auto bg-slate-50/70 p-3.5 sm:p-4 scroll-smooth">
-          {activeTab === 'home' && (
+        {/* Dynamic Main Body Scroll View */}
+        <main className="flex-1 p-3.5 sm:p-4 overflow-y-auto bg-slate-50/70">
+          {activeMenu === 'home' && (
             <HomeView
-              onSelectTab={setActiveTab}
-              profile={profile}
-              skuItems={skuItems}
-              onOpenQuickMorse={() => setActiveTab('sandi')}
+              user={user}
+              onNavigateMenu={(m) => setActiveMenu(m)}
+              programKerjaList={programKerjaList}
             />
           )}
 
-          {activeTab === 'sku' && (
-            <SkuTrackerView
-              skuItems={skuItems}
-              onUpdateSku={setSkuItems}
-              profile={profile}
+          {(activeMenu === 'dashboard' || activeMenu === 'kegiatan_latihan') && (
+            <DashboardView
+              programKerjaList={programKerjaList}
+              onNavigateToProgramKerja={() => setActiveMenu('program_kerja')}
             />
           )}
 
-          {activeTab === 'sandi' && <SandiMorseView />}
+          {activeMenu === 'profil_ambalan' && (
+            <ProfilAmbalanView />
+          )}
 
-          {activeTab === 'lontara' && <LontaraView />}
+          {activeMenu === 'sangga' && (
+            <SanggaView
+              currentUser={user}
+              allMembers={allMembers}
+            />
+          )}
 
-          {activeTab === 'pionering' && <PioneringView />}
+          {activeMenu === 'sku_skk' && (
+            <SkuSkkView />
+          )}
 
-          {activeTab === 'agenda' && <AgendaPresensiView profile={profile} />}
+          {activeMenu === 'ruang_belajar' && (
+            <RuangBelajarView isAdmin={isAdmin} />
+          )}
 
-          {activeTab === 'presensi' && <AgendaPresensiView profile={profile} />}
+          {activeMenu === 'quiz' && (
+            <QuizPramukaView
+              currentUser={user}
+              onBackToHome={() => setActiveMenu('home')}
+            />
+          )}
 
-          {activeTab === 'profil' && <ProfilAmbalanView profile={profile} />}
+          {activeMenu === 'chat' && (
+            <ChatAmbalanView currentUser={user} />
+          )}
 
-          {activeTab === 'logbook' && <LogbookView profile={profile} />}
+          {activeMenu === 'pengaturan' && (
+            <PengaturanView
+              currentUser={user}
+              onNavigateToAkun={() => setActiveMenu('akun')}
+            />
+          )}
 
-          {activeTab === 'dasadarma' && <DasaDarmaView />}
+          {activeMenu === 'program_kerja' && (
+            <ProgramKerjaView
+              programKerjaList={programKerjaList}
+              onUpdateList={setProgramKerjaList}
+              isAdmin={isAdmin}
+            />
+          )}
+
+          {activeMenu === 'latihan_rutin' && (
+            <LatihanRutinView
+              programKerjaList={programKerjaList}
+              currentUser={user}
+              isAdmin={isAdmin}
+              onNavigateToProgramKerja={() => setActiveMenu('program_kerja')}
+            />
+          )}
+
+          {activeMenu === 'akun' && (
+            <AkunView
+              user={user}
+              onUpdateUser={setUser}
+              onNavigateToDatabase={() => setActiveMenu('database')}
+              onOpenAuthModal={() => setIsAuthModalOpen(true)}
+            />
+          )}
+
+          {activeMenu === 'database' && (
+            <DatabaseAnggotaView
+              allMembers={allMembers}
+              currentUser={user}
+              onSelectUserForTesting={(selectedUser) => {
+                setUser(selectedUser);
+              }}
+            />
+          )}
         </main>
 
-        {/* Android Bottom Navigation */}
-        <AndroidBottomNav
-          activeTab={activeTab}
-          onSelectTab={setActiveTab}
+        {/* Floating Bottom Navigation Bar */}
+        <FloatingBottomNav
+          activeMenu={activeMenu === 'kegiatan_latihan' ? 'dashboard' : activeMenu}
+          onSelectMenu={(m) => setActiveMenu(m)}
         />
 
-        {/* Floating Action Button (FAB) */}
-        <AndroidFAB
-          onSelectTab={setActiveTab}
-          onTriggerSos={triggerSosSignal}
+        {/* Sidebar Navigation Drawer */}
+        <AndroidSidebar
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          activeMenu={activeMenu === 'kegiatan_latihan' ? 'dashboard' : activeMenu}
+          onSelectMenu={(m) => setActiveMenu(m)}
+          user={user}
+          onUpdateUser={setUser}
+          onOpenAuthModal={() => setIsAuthModalOpen(true)}
         />
 
-        {/* Android Navigation Drawer (Sidebar) */}
-        <AndroidNavigationDrawer
-          isOpen={isDrawerOpen}
-          onClose={() => setIsDrawerOpen(false)}
-          activeTab={activeTab}
-          onSelectTab={setActiveTab}
-          profile={profile}
-          onToggleGudep={handleToggleGudep}
+        {/* Dedicated Ambalan Login / Register Modal */}
+        <AmbalanAuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          currentUser={user}
+          allMembers={allMembers}
+          onLoginSuccess={(loggedInUser) => {
+            setUser(loggedInUser);
+          }}
         />
 
-        {/* Notifications Modal */}
-        <NotificationsModal
-          isOpen={isNotifOpen}
-          onClose={() => setIsNotifOpen(false)}
-        />
-
-        {/* Android Home Bar Indicator at bottom for realistic native look */}
-        <div className="w-full py-1 bg-white flex justify-center items-center select-none pointer-events-none">
-          <div className="w-28 h-1 bg-slate-300 rounded-full" />
-        </div>
-
-      </div>
-
-      {/* Desktop helper caption */}
-      <div className="mt-2 text-center text-slate-400 text-[11px] hidden sm:block">
-        <span>Aplikasi Berbasis Android • <strong>Ambalan La Surullah Petta Lopo</strong> • Gugus Depan 10-035 & 10-036</span>
       </div>
 
     </div>

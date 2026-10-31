@@ -43,7 +43,7 @@ export const AndroidTopAppBar: React.FC<AndroidTopAppBarProps> = ({
               <img
                 src={LOGO_IMAGE_PATH}
                 alt="Ambalan La Surullah Petta Lopo"
-                className="w-full h-full object-cover rounded-full bg-black"
+                className="w-full h-full object-contain rounded-full bg-white/90"
               />
             </div>
           </div>

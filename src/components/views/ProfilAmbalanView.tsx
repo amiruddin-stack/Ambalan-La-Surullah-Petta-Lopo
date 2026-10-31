@@ -4,10 +4,10 @@ import { LOGO_IMAGE_PATH, FILOSOFI_LOGO, SEJARAH_TOKOH } from '../../data/scoutD
 import { UserProfile } from '../../types';
 
 interface ProfilAmbalanViewProps {
-  profile: UserProfile;
+  profile?: UserProfile;
 }
 
-export const ProfilAmbalanView: React.FC<ProfilAmbalanViewProps> = ({ profile }) => {
+export const ProfilAmbalanView: React.FC<ProfilAmbalanViewProps> = () => {
   const [activeElement, setActiveElement] = useState(FILOSOFI_LOGO[0]);
 
   const dewanAmbalan = [
@@ -30,8 +30,8 @@ export const ProfilAmbalanView: React.FC<ProfilAmbalanViewProps> = ({ profile })
     <div className="space-y-4 pb-20">
       
       {/* Top Banner Profile */}
-      <div className="bg-white rounded-3xl p-5 border-2 border-amber-400 shadow-sm text-center relative overflow-hidden">
-        <div className="w-32 h-32 mx-auto rounded-3xl bg-white p-2 ring-4 ring-amber-400 shadow-xl mb-3">
+      <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm text-center relative overflow-hidden">
+        <div className="w-32 h-32 mx-auto rounded-3xl bg-white p-2 border border-slate-200 shadow-lg mb-3">
           <img
             src={LOGO_IMAGE_PATH}
             alt="Lambang Ambalan La Surullah Petta Lopo"

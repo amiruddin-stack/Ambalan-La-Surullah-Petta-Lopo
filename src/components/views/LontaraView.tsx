@@ -135,8 +135,8 @@ export const LontaraView: React.FC = () => {
 
       {/* Ribbon on Logo Explanation */}
       <div className="bg-white rounded-2xl p-4 border-2 border-slate-100 shadow-xs flex flex-col sm:flex-row items-center gap-4">
-        <div className="w-20 h-20 rounded-xl bg-black p-1 shrink-0 ring-2 ring-amber-400 shadow-sm">
-          <img src={LOGO_IMAGE_PATH} alt="Pita Lontara Logo" className="w-full h-full object-cover" />
+        <div className="w-20 h-20 rounded-xl bg-white p-1 shrink-0 ring-2 ring-amber-400 shadow-sm flex items-center justify-center">
+          <img src={LOGO_IMAGE_PATH} alt="Pita Lontara Logo" className="w-full h-full object-contain" />
         </div>
         <div className="flex-1 text-center sm:text-left">
           <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-400 text-slate-950 font-mono">
