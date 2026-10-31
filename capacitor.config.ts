@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'id.sch.smpialwasi_maros.ambalan',
-  appName: 'Ambalan La Surullah Petta Lopo',
+  appName: 'Pettalopo Mobile',
   webDir: 'dist',
   server: {
     androidScheme: 'https'
