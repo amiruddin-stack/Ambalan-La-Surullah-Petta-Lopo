@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { Download, X, RefreshCw, Smartphone } from 'lucide-react';
+import { Directory, Filesystem } from '@capacitor/filesystem';
+import { FileOpener } from '@capawesome-team/capacitor-file-opener';
+import { Download, X, RefreshCw, Smartphone, LoaderCircle } from 'lucide-react';
 
-const CURRENT_VERSION = '1.0.1';
+const CURRENT_VERSION = '1.0.2';
 const RELEASES_API = 'https://api.github.com/repos/amiruddin-stack/Ambalan-La-Surullah-Petta-Lopo/releases/latest';
 
 type ReleaseInfo = {
@@ -28,6 +30,8 @@ function compareVersions(a: string, b: string) {
 export function UpdateChecker() {
   const [release, setRelease] = useState<ReleaseInfo | null>(null);
   const [visible, setVisible] = useState(false);
+  const [updating, setUpdating] = useState(false);
+  const [updateMessage, setUpdateMessage] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -80,6 +84,44 @@ export function UpdateChecker() {
     return () => { active = false; };
   }, []);
 
+  async function startUpdate() {
+    const apkUrl = release?.assets?.[0]?.browser_download_url;
+    if (!apkUrl || updating) return;
+
+    if (Capacitor.getPlatform() !== 'android') {
+      window.open(apkUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    setUpdating(true);
+    setUpdateMessage('Mengunduh pembaruan ke perangkat...');
+    try {
+      const version = (release?.tag_name || 'terbaru').replace(/^v/i, '');
+      const path = `updates/pettalopo-mobile-${version}.apk`;
+
+      await Filesystem.downloadFile({
+        url: apkUrl,
+        path,
+        directory: Directory.Cache,
+        recursive: true,
+      });
+
+      setUpdateMessage('Unduhan selesai. Membuka pemasang Android...');
+      const file = await Filesystem.getUri({ path, directory: Directory.Cache });
+      await FileOpener.openFile({
+        path: file.uri,
+        mimeType: 'application/vnd.android.package-archive',
+      });
+      setUpdateMessage('Silakan ikuti konfirmasi pemasangan yang muncul dari Android.');
+    } catch (error) {
+      console.error('Pembaruan Pettalopo gagal dibuka:', error);
+      setUpdateMessage('Belum dapat membuka pemasang otomatis. Silakan unduh APK melalui tautan cadangan.');
+      window.open(apkUrl, '_blank', 'noopener,noreferrer');
+    } finally {
+      setUpdating(false);
+    }
+  }
+
   if (!visible || !release) return null;
 
   const apkUrl = release.assets?.[0]?.browser_download_url;
@@ -93,7 +135,8 @@ export function UpdateChecker() {
             type="button"
             onClick={() => setVisible(false)}
             aria-label="Tutup pemberitahuan"
-            className="absolute right-4 top-4 rounded-full bg-white/15 p-2 text-white transition hover:bg-white/25"
+            disabled={updating}
+            className="absolute right-4 top-4 rounded-full bg-white/15 p-2 text-white transition hover:bg-white/25 disabled:opacity-50"
           >
             <X size={18} />
           </button>
@@ -115,25 +158,31 @@ export function UpdateChecker() {
               {release.body}
             </div>
           )}
+          {updateMessage && (
+            <p role="status" className="rounded-xl bg-emerald-50 px-3 py-2 text-center text-xs leading-relaxed text-emerald-800">
+              {updateMessage}
+            </p>
+          )}
           <button
             type="button"
-            disabled={!apkUrl}
-            onClick={() => apkUrl && window.open(apkUrl, '_blank')}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-700 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-900/15 transition hover:bg-emerald-800 disabled:opacity-50"
+            disabled={!apkUrl || updating}
+            onClick={startUpdate}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-700 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-900/15 transition hover:bg-emerald-800 disabled:opacity-60"
           >
-            <Download size={18} />
-            Unduh Pembaruan
+            {updating ? <LoaderCircle size={18} className="animate-spin" /> : <Download size={18} />}
+            {updating ? 'Memproses Pembaruan...' : 'Unduh & Pasang Pembaruan'}
           </button>
           <button
             type="button"
+            disabled={updating}
             onClick={() => setVisible(false)}
-            className="flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-semibold text-slate-500 transition hover:bg-slate-50"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-semibold text-slate-500 transition hover:bg-slate-50 disabled:opacity-50"
           >
             <RefreshCw size={15} />
             Nanti saja
           </button>
           <p className="text-center text-[11px] leading-relaxed text-slate-400">
-            Setelah unduhan selesai, buka file APK dan ikuti petunjuk pemasangan Android.
+            Setelah unduhan, Android akan meminta persetujuan untuk memasang pembaruan. Data aplikasi tidak dihapus jika versi ini memiliki tanda tangan pemasangan yang sama.
           </p>
         </div>
       </div>
