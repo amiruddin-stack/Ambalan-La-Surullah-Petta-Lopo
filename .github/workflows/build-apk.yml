@@ -59,7 +59,7 @@ jobs:
           from PIL import Image, ImageDraw
           from pathlib import Path
 
-          source = Image.open("public/assets/pettalopo-logo.png").convert("RGBA")
+          source = Image.open("public/assets/Desain tanpa judul_20261101_101811_0000.png").convert("RGBA")
 
           # Remove only a near-white background connected to the image edges.
           # White details enclosed inside the emblem remain untouched.
@@ -148,7 +148,7 @@ jobs:
           from PIL import Image
           from pathlib import Path
 
-          source = Image.open("public/assets/pettalopo-logo.png").convert("RGBA")
+          source = Image.open("public/assets/Desain tanpa judul_20261101_101811_0000.png").convert("RGBA")
           size = 2732
           canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
           source.thumbnail((int(size * 0.68), int(size * 0.68)), Image.Resampling.LANCZOS)
