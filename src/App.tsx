@@ -20,6 +20,7 @@ import { ChatAmbalanView } from './components/views/ChatAmbalanView';
 import { PengaturanView } from './components/views/PengaturanView';
 import { AmbalanAuthModal } from './components/auth/AmbalanAuthModal';
 import { UpdateChecker } from './components/UpdateChecker';
+import { SplashScreen } from './components/SplashScreen';
 
 import { ActiveMenu, ProgramKerjaItem, UserAccount } from './types';
 import { 
@@ -34,6 +35,7 @@ export default function App() {
   const [activeMenu, setActiveMenu] = useState<ActiveMenu>('home');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [showPettalopoSplash, setShowPettalopoSplash] = useState(true);
 
   // Live All Members in Ambalan
   const [allMembers, setAllMembers] = useState<UserAccount[]>(DEFAULT_SEED_MEMBERS);
@@ -155,6 +157,8 @@ export default function App() {
       <div className="w-full max-w-lg mx-auto min-h-screen bg-white shadow-xl flex flex-col relative">
         
         <UpdateChecker />
+
+        {showPettalopoSplash && <SplashScreen onFinish={() => setShowPettalopoSplash(false)} />}
 
         {/* Top App Bar with Role Badge */}
         <CleanTopAppBar
