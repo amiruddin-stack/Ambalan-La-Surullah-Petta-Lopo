@@ -176,6 +176,9 @@ jobs:
           fi
           echo "$KEYSTORE_BASE64" | base64 --decode > android/app/pettalopo-release.jks
           export KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD
+          echo "KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+          echo "KEY_ALIAS=$KEY_ALIAS" >> "$GITHUB_ENV"
+          echo "KEY_PASSWORD=$KEY_PASSWORD" >> "$GITHUB_ENV"
           python - <<'PY'
           from pathlib import Path
           p = Path("android/app/build.gradle")
