@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { SplashScreen } from './components/SplashScreen';
+import { SplashScreen as NativeSplashScreen } from '@capacitor/splash-screen';
 import { CleanTopAppBar } from './components/CleanTopAppBar';
 import { AndroidSidebar } from './components/AndroidSidebar';
 import { FloatingBottomNav } from './components/FloatingBottomNav';
@@ -31,7 +31,6 @@ import {
 import { DEFAULT_PROGRAM_KERJA_ITEMS } from './data/defaultProgramKerja';
 
 export default function App() {
-  const [showSplash, setShowSplash] = useState(true);
   const [activeMenu, setActiveMenu] = useState<ActiveMenu>('home');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -79,6 +78,11 @@ export default function App() {
   });
 
   const isAdmin = user.role === 'admin';
+
+  // Keep the single native Android splash visible until the first React frame is mounted.
+  useEffect(() => {
+    NativeSplashScreen.hide().catch(() => {});
+  }, []);
 
   // Persist and sync user
   useEffect(() => {
@@ -147,11 +151,6 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col font-sans antialiased text-slate-800">
       
-      {/* 1. Splash Screen selama 3 detik */}
-      {showSplash && (
-        <SplashScreen onFinish={() => setShowSplash(false)} />
-      )}
-
       {/* Main Native App Container */}
       <div className="w-full max-w-lg mx-auto min-h-screen bg-white shadow-xl flex flex-col relative">
         
