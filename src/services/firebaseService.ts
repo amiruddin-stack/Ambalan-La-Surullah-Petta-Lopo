@@ -9,7 +9,8 @@ import {
   where,
   orderBy,
   deleteDoc,
-  updateDoc
+  updateDoc,
+  arrayUnion
 } from 'firebase/firestore';
 import { db, auth, handleFirestoreError, OperationType } from '../firebase/config';
 import {
@@ -503,6 +504,20 @@ export async function updateAmbalanChatList(
       updates.createdAtNumber = Date.now();
     }
     await updateDoc(docRef, updates);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, path);
+  }
+}
+
+
+export async function saveUserPushToken(uid: string, token: string): Promise<void> {
+  if (!uid || !token) return;
+  const path = `${USERS_PATH}/${uid}`;
+  try {
+    await setDoc(doc(db, USERS_PATH, uid), {
+      pushTokens: arrayUnion(token),
+      pushTokenUpdatedAt: new Date().toISOString()
+    }, { merge: true });
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, path);
   }
