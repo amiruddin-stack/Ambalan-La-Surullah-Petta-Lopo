@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { SplashScreen as NativeSplashScreen } from '@capacitor/splash-screen';
 import { Capacitor } from '@capacitor/core';
 import { PushNotifications } from '@capacitor/push-notifications';
+import { LocalNotifications } from '@capacitor/local-notifications';
 import { CleanTopAppBar } from './components/CleanTopAppBar';
 import { AndroidSidebar } from './components/AndroidSidebar';
 import { FloatingBottomNav } from './components/FloatingBottomNav';
@@ -116,6 +117,19 @@ export default function App() {
         listeners.push(await PushNotifications.addListener('registration', async ({ value }) => {
           const uid = user.uid || user.username;
           await saveUserPushToken(uid, value);
+        }));
+        listeners.push(await PushNotifications.addListener('pushNotificationReceived', async (notification) => {
+          await LocalNotifications.schedule({
+            notifications: [{
+              id: Math.floor(Date.now() % 2147483647),
+              title: notification.title || 'Petta Lopo',
+              body: notification.body || 'Ada informasi baru dari Ambalan.',
+              schedule: { at: new Date(Date.now() + 500) },
+              sound: 'default',
+              channelId: 'pettalopo_general',
+              extra: notification.data
+            }]
+          }).catch((error) => console.warn('Could not show foreground notification:', error));
         }));
         listeners.push(await PushNotifications.addListener('registrationError', (error) => {
           console.warn('Push registration failed:', error);
