@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, Bell, X, Calendar, Award, Sparkles, Check } from 'lucide-react';
+import { Menu, Bell, X, Calendar, Award, Sparkles, Check, MoreVertical, Settings, UserRound } from 'lucide-react';
 import { LOGO_IMAGE_PATH } from '../data/scoutData';
 
 interface CleanTopAppBarProps {
@@ -9,6 +9,7 @@ interface CleanTopAppBarProps {
   userRole?: 'admin' | 'anggota';
   onNavigateToAkun?: () => void;
   onOpenAuthModal?: () => void;
+  onNavigateToPengaturan?: () => void;
 }
 
 export const CleanTopAppBar: React.FC<CleanTopAppBarProps> = ({
@@ -17,8 +18,10 @@ export const CleanTopAppBar: React.FC<CleanTopAppBarProps> = ({
   subtitle,
   userRole = 'admin',
   onNavigateToAkun,
-  onOpenAuthModal
+  onOpenAuthModal,
+  onNavigateToPengaturan
 }) => {
+  const [showQuickMenu, setShowQuickMenu] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const isBeranda = title.toLowerCase().includes('beranda');
 
@@ -83,19 +86,32 @@ export const CleanTopAppBar: React.FC<CleanTopAppBarProps> = ({
             </h1>
           </div>
 
-          {/* Right: Ujung Kanan Notifikasi */}
-          <div className="flex items-center gap-1.5">
+          {/* Menu tindakan ringkas tanpa kotak */}
+          <div className="relative">
             <button
-              onClick={() => setShowNotificationModal(true)}
-              aria-label="Notifikasi Ambalan"
-              title="Notifikasi"
-              className="p-2 text-slate-700 hover:text-[#e51c24] hover:bg-slate-100 rounded-full transition-colors relative"
+              onClick={() => setShowQuickMenu(value => !value)}
+              aria-label="Menu lainnya"
+              aria-expanded={showQuickMenu}
+              className="p-1.5 text-slate-700 hover:text-[#e51c24] active:scale-95 transition-transform"
             >
-              <Bell className="w-5 h-5" />
-              <span className="w-2 h-2 rounded-full bg-[#e51c24] absolute top-1.5 right-1.5 ring-2 ring-white animate-pulse" />
+              <MoreVertical className="w-6 h-6" />
             </button>
+            {showQuickMenu && (
+              <>
+                <button className="fixed inset-0 z-30 cursor-default" aria-label="Tutup menu" onClick={() => setShowQuickMenu(false)} />
+                <div className="absolute right-0 top-10 z-40 w-44 rounded-2xl bg-white border border-slate-200 shadow-xl p-1.5">
+                  <button
+                    onClick={() => { setShowQuickMenu(false); onNavigateToPengaturan?.(); }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:bg-red-50 hover:text-[#e51c24]"
+                  ><Settings className="w-4 h-4" /> Pengaturan</button>
+                  <button
+                    onClick={() => { setShowQuickMenu(false); onNavigateToAkun?.(); }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:bg-red-50 hover:text-[#e51c24]"
+                  ><UserRound className="w-4 h-4" /> Akun</button>
+                </div>
+              </>
+            )}
           </div>
-
         </div>
       </header>
 
