@@ -229,174 +229,77 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </div>
       </div>
 
-      {/* 2. RODA LINGKARAN 12 BULAN SDGs (SESUAI GAMBAR REFERENSI LINGKARAN) */}
-      <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-4">
-        
-        {/* Header Roda */}
-        <div className="text-center">
-          <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
-            Kalender Agenda Tahunan
-          </span>
-          <h3 className="text-sm sm:text-base font-black text-slate-900 uppercase tracking-tight mt-1">
-            Roda Agenda 12 Bulan Ambalan
-          </h3>
-          <p className="text-[11px] text-slate-500">
-            Pilih atau sentuh segmen lingkaran untuk melihat kegiatan setiap bulan
-          </p>
-        </div>
-
-        {/* Lingkaran Donut SDGs Interaktif */}
-        <div className="flex justify-center items-center py-2 relative">
-          <div className="relative w-[280px] h-[280px] sm:w-[320px] sm:h-[320px] flex items-center justify-center">
-            
-            <svg 
-              viewBox={`0 0 ${size} ${size}`} 
-              className="w-full h-full transform transition-transform duration-300"
-            >
-              {BULAN_LINGKARAN_SDG.map((m, idx) => {
-                const isSelected = selectedIdx === idx;
-                // Calculate segment angles starting at top 12 o'clock (-90 deg)
-                const startAngle = idx * sliceDegree - 90 + gapDegree / 2;
-                const endAngle = (idx + 1) * sliceDegree - 90 - gapDegree / 2;
-
-                const pathData = describeArcSegment(
-                  center,
-                  center,
-                  isSelected ? innerR - 3 : innerR,
-                  isSelected ? outerR + 5 : outerR,
-                  startAngle,
-                  endAngle
-                );
-
-                // Label position in middle of segment
-                const midAngle = (startAngle + endAngle) / 2;
-                const labelPos = polarToCartesian(center, center, (innerR + outerR) / 2, midAngle);
-
-                return (
-                  <g key={m.id} className="cursor-pointer group" onClick={() => setSelectedIdx(idx)}>
-                    {/* Sektor Donut Lingkaran */}
-                    <path
-                      d={pathData}
-                      fill={m.bgHex}
-                      className="transition-all duration-200 hover:opacity-90 active:scale-[0.98] origin-center"
-                      filter={isSelected ? 'drop-shadow(0px 4px 6px rgba(0,0,0,0.25))' : undefined}
-                      stroke={isSelected ? '#ffffff' : 'none'}
-                      strokeWidth={isSelected ? '2' : '0'}
-                    />
-
-                    {/* Teks Singkatan Bulan di dalam Segmen */}
-                    <text
-                      x={labelPos.x}
-                      y={labelPos.y + 3.5}
-                      textAnchor="middle"
-                      fill="#ffffff"
-                      fontSize={isSelected ? '10' : '9'}
-                      fontWeight="900"
-                      fontFamily="sans-serif"
-                      className="pointer-events-none select-none tracking-tighter"
-                    >
-                      {m.singkatan}
-                    </text>
-                  </g>
-                );
-              })}
-            </svg>
-
-            {/* Bagian Tengah Lingkaran (Center Hub): Menampilkan Bulan yang Dipilih */}
-            <div 
-              onClick={() => setIsDetailModalOpen(true)}
-              className="absolute inset-0 m-auto w-[150px] h-[150px] sm:w-[160px] sm:h-[160px] rounded-full bg-white shadow-inner flex flex-col items-center justify-center p-3 text-center cursor-pointer border border-slate-100 hover:scale-105 active:scale-95 transition-all group"
-              title="Klik untuk membuka rincian lengkap agenda bulan ini"
-            >
-              <div 
-                style={{ backgroundColor: activeItem.bgHex }}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-base shadow-xs mb-1 text-white border-2 border-white"
-              >
-                {activeItem.iconSymbol}
-              </div>
-
-              <span className="text-[9px] font-mono font-black text-slate-400 uppercase tracking-widest leading-none">
-                Bulan {activeItem.id}/12
-              </span>
-
-              <h4 
-                style={{ color: activeItem.bgHex }}
-                className="text-sm font-black leading-tight mt-0.5"
-              >
-                {activeItem.bulan}
-              </h4>
-
-              <span className="text-[9px] text-slate-700 font-bold line-clamp-2 leading-tight px-1 mt-0.5">
-                {activeItem.kegiatanUtama}
-              </span>
-
-              <span className="text-[8px] text-[#e51c24] font-bold mt-1 group-hover:underline flex items-center gap-0.5">
-                <span>Rincian</span>
-                <ChevronRight className="w-2.5 h-2.5" />
-              </span>
-            </div>
-
+      {/* 2. AGENDA BULANAN — satu banner untuk setiap bulan */}
+      <section className="bg-white rounded-3xl p-4 border border-slate-200 shadow-sm space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#e51c24]">Kalender Ambalan</span>
+            <h3 className="text-base font-black text-slate-900">Agenda Bulan Ini</h3>
           </div>
+          <span className="text-[10px] font-semibold text-slate-400">{selectedIdx + 1} / 12</span>
         </div>
 
-        {/* Kartu Rincian Bulan Terpilih (Di Bawah Lingkaran) */}
-        <div 
-          style={{ borderLeftColor: activeItem.bgHex }}
-          className="p-4 rounded-2xl bg-slate-50 border border-slate-200 border-l-4 space-y-2 text-xs transition-all animate-in fade-in duration-150"
+        <div
+          className="relative overflow-hidden rounded-2xl touch-pan-y"
+          onTouchStart={(event) => {
+            (event.currentTarget as HTMLDivElement).dataset.touchStartX = String(event.touches[0].clientX);
+          }}
+          onTouchEnd={(event) => {
+            const startX = Number((event.currentTarget as HTMLDivElement).dataset.touchStartX || 0);
+            const delta = event.changedTouches[0].clientX - startX;
+            if (Math.abs(delta) > 45) {
+              setSelectedIdx(current => (current + (delta < 0 ? 1 : 11)) % 12);
+            }
+          }}
         >
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <span 
-                  style={{ backgroundColor: activeItem.bgHex }}
-                  className="px-2 py-0.5 rounded-full text-white font-mono font-bold text-[9px] uppercase tracking-wider"
-                >
-                  {activeItem.bulan} 2026/2027
-                </span>
-                <span className="text-slate-400 font-mono text-[10px]">
-                  {relatedProker.length} Program Kerja
-                </span>
-              </div>
-              <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-snug">
-                {activeItem.kegiatanUtama}
-              </h4>
+          <div
+            className="min-h-[190px] p-5 text-white relative flex flex-col justify-between"
+            style={{ background: `linear-gradient(135deg, ${activeItem.bgHex}, #7f1d1d)` }}
+          >
+            <div className="absolute -right-8 -top-10 w-44 h-44 rounded-full border-[22px] border-white/10" />
+            <div className="absolute -right-1 bottom-2 text-7xl opacity-15 select-none">{activeItem.iconSymbol}</div>
+            <div className="relative z-10 flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-[0.18em]">{activeItem.bulan} {new Date().getFullYear()}</span>
+              <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-white/20 border border-white/30">AGENDA {String(activeItem.id).padStart(2, '0')}</span>
             </div>
-
-            <button
-              onClick={() => setIsDetailModalOpen(true)}
-              className="p-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-[#e51c24] transition-colors shrink-0 shadow-2xs"
-              title="Buka Rincian Lengkap"
-            >
-              <ArrowRight className="w-4 h-4" />
-            </button>
+            <div className="relative z-10 max-w-[85%]">
+              <h4 className="text-xl font-black leading-tight">{activeItem.kegiatanUtama}</h4>
+              <p className="text-xs text-white/85 mt-2 leading-relaxed">{activeItem.deskripsi}</p>
+            </div>
+            <div className="relative z-10 flex items-center justify-between mt-4">
+              <span className="text-[10px] font-semibold text-white/80">{relatedProker.length} program kerja tercatat</span>
+              <button onClick={() => setIsDetailModalOpen(true)} className="text-xs font-bold bg-white text-[#b91c1c] rounded-full px-3 py-2 shadow-sm">Lihat rincian <ArrowRight className="inline w-3.5 h-3.5 ml-1" /></button>
+            </div>
           </div>
-
-          <p className="text-slate-600 text-[11px] leading-relaxed">
-            {activeItem.deskripsi}
-          </p>
+          <button
+            onClick={() => setSelectedIdx(current => (current + 11) % 12)}
+            aria-label="Agenda bulan sebelumnya"
+            className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 text-slate-800 shadow flex items-center justify-center"
+          ><ChevronRight className="w-4 h-4 rotate-180" /></button>
+          <button
+            onClick={() => setSelectedIdx(current => (current + 1) % 12)}
+            aria-label="Agenda bulan berikutnya"
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 text-slate-800 shadow flex items-center justify-center"
+          ><ChevronRight className="w-4 h-4" /></button>
         </div>
 
-        {/* Tab Geser Cepat 12 Bulan */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-1 -mx-2 px-2 scrollbar-thin">
-          {BULAN_LINGKARAN_SDG.map((m, idx) => {
-            const isSelected = selectedIdx === idx;
-            return (
-              <button
-                key={m.id}
-                onClick={() => setSelectedIdx(idx)}
-                style={{
-                  backgroundColor: isSelected ? m.bgHex : '#f1f5f9',
-                  color: isSelected ? '#ffffff' : '#475569'
-                }}
-                className="px-2.5 py-1 rounded-xl text-[10px] font-bold font-mono shrink-0 transition-all hover:opacity-90 active:scale-95 shadow-2xs"
-              >
-                {m.singkatan}
-              </button>
-            );
-          })}
+        <div className="flex items-center justify-center gap-1.5">
+          {BULAN_LINGKARAN_SDG.map((month, index) => (
+            <button
+              key={month.id}
+              onClick={() => setSelectedIdx(index)}
+              aria-label={`Tampilkan agenda ${month.bulan}`}
+              title={month.bulan}
+              className={`h-1.5 rounded-full transition-all ${selectedIdx === index ? 'w-6 bg-[#e51c24]' : 'w-1.5 bg-slate-300'}`}
+            />
+          ))}
         </div>
-
-      </div>
+        <div className="flex items-center justify-between gap-2">
+          <button onClick={() => setSelectedIdx(current => (current + 11) % 12)} className="text-xs font-bold text-slate-600 px-2 py-1">‹ Bulan sebelumnya</button>
+          <span className="text-[10px] font-semibold text-slate-400">Geser banner untuk 12 bulan</span>
+          <button onClick={() => setSelectedIdx(current => (current + 1) % 12)} className="text-xs font-bold text-slate-600 px-2 py-1">Berikutnya ›</button>
+        </div>
+      </section>
 
       {/* 3. MENU CEPAT: PENCAPAIAN SKU, PENCAPAIAN SKK, QUIZ PRAMUKA */}
       <div className="space-y-2">
