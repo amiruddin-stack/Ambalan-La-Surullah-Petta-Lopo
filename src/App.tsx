@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { SystemBars } from '@capacitor/core';
 import { SplashScreen as NativeSplashScreen } from '@capacitor/splash-screen';
 import { CleanTopAppBar } from './components/CleanTopAppBar';
 import { AndroidSidebar } from './components/AndroidSidebar';
@@ -80,6 +81,11 @@ export default function App() {
   });
 
   const isAdmin = user.role === 'admin';
+
+  // Use dark status-bar icons on the light app header for readable clock and system indicators.
+  useEffect(() => {
+    SystemBars.setStyle({ style: 'LIGHT', bar: 'StatusBar' }).catch(() => {});
+  }, []);
 
   // Keep the single native Android splash visible until the first React frame is mounted.
   useEffect(() => {
@@ -166,6 +172,7 @@ export default function App() {
           subtitle={`Gudep ${user.gudep}`}
           userRole={user.role}
           onNavigateToAkun={() => setActiveMenu('akun')}
+          onNavigateToPengaturan={() => setActiveMenu('pengaturan')}
           onOpenSidebar={() => setIsSidebarOpen(true)}
           onOpenAuthModal={() => setIsAuthModalOpen(true)}
         />
