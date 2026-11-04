@@ -48,7 +48,7 @@ export const CleanTopAppBar: React.FC<CleanTopAppBarProps> = ({
 
   return (
     <>
-      <header className="sticky top-0 z-30 bg-white border-b border-slate-200 shadow-xs transition-all font-sans">
+      <header className="sticky top-0 z-30 bg-white border-b border-slate-200 shadow-xs transition-all font-sans safe-area-top">
         {/* Top red strip */}
         <div className="h-0.5 w-full bg-[#e51c24]" />
 
