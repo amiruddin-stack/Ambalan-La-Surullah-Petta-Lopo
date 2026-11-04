@@ -85,7 +85,7 @@ export default function App() {
 
   // Use dark status-bar icons on the light app header for readable clock and system indicators.
   useEffect(() => {
-    SystemBars.setStyle({ style: 'LIGHT', bar: 'StatusBar' }).catch(() => {});
+    SystemBars.setStyle({ style: 'DARK', bar: 'StatusBar' }).catch(() => {});
   }, []);
 
   // Keep the single native Android splash visible until the first React frame is mounted.
@@ -217,7 +217,7 @@ export default function App() {
           )}
 
           {activeMenu === 'ruang_belajar' && (
-            <RuangBelajarView isAdmin={isAdmin} />
+            <RuangBelajarView isAdmin={isAdmin} onOpenQuiz={() => setActiveMenu('quiz')} />
           )}
 
           {activeMenu === 'quiz' && (
