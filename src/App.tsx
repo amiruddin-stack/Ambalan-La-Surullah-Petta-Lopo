@@ -7,6 +7,7 @@ import { FloatingBottomNav } from './components/FloatingBottomNav';
 
 // Views
 import { HomeView } from './components/views/HomeView';
+import { DewanAmbalanWorkspaceView } from './components/views/DewanAmbalanWorkspaceView';
 import { DashboardView } from './components/views/DashboardView';
 import { ProgramKerjaView } from './components/views/ProgramKerjaView';
 import { SkuSkkView } from './components/views/SkuSkkView';
@@ -152,6 +153,7 @@ export default function App() {
       case 'latihan_rutin': return 'Jadwal & Absensi Latihan';
       case 'akun': return 'Akun & Profil Anggota';
       case 'database': return 'Database Akun & Anggota';
+      case 'dewan_ambalan': return 'Ruang Kerja Dewan Ambalan';
       default: return 'Ambalan La Surullah';
     }
   };
@@ -184,6 +186,7 @@ export default function App() {
               user={user}
               onNavigateMenu={(m) => setActiveMenu(m)}
               programKerjaList={programKerjaList}
+              allMembers={allMembers}
             />
           )}
 
@@ -192,6 +195,10 @@ export default function App() {
               programKerjaList={programKerjaList}
               onNavigateToProgramKerja={() => setActiveMenu('program_kerja')}
             />
+          )}
+
+          {activeMenu === 'dewan_ambalan' && (
+            <DewanAmbalanWorkspaceView onNavigate={(menu) => setActiveMenu(menu)} />
           )}
 
           {activeMenu === 'profil_ambalan' && (
