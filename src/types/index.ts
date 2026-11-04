@@ -13,7 +13,8 @@ export type ActiveMenu =
   | 'pengaturan'
   | 'latihan_rutin'
   | 'akun'
-  | 'database';
+  | 'database'
+  | 'dewan_ambalan';
 
 export interface ChatListItem {
   id: string;
