@@ -19,7 +19,7 @@ export const FloatingBottomNav: React.FC<FloatingBottomNavProps> = ({
   ];
 
   return (
-    <footer className="sticky bottom-0 z-30 w-full bg-white border-t border-slate-200 shadow-md font-sans">
+    <footer className="sticky bottom-0 z-30 w-full bg-white border-t border-slate-200 shadow-md font-sans safe-area-bottom">
       <nav className="flex items-center justify-around px-2 py-1.5 max-w-lg mx-auto">
         {tabs.map((tab) => {
           const isActive = activeMenu === tab.id;
