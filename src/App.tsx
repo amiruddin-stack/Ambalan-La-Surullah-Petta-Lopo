@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { SplashScreen as NativeSplashScreen } from '@capacitor/splash-screen';
+import { Capacitor } from '@capacitor/core';
+import { PushNotifications } from '@capacitor/push-notifications';
 import { CleanTopAppBar } from './components/CleanTopAppBar';
 import { AndroidSidebar } from './components/AndroidSidebar';
 import { FloatingBottomNav } from './components/FloatingBottomNav';
@@ -85,6 +87,57 @@ export default function App() {
   useEffect(() => {
     NativeSplashScreen.hide().catch(() => {});
   }, []);
+
+
+  // Register this Android device for remote push notifications.
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    let mounted = true;
+    const listeners: Array<{ remove: () => Promise<void> }> = [];
+
+    const setupPush = async () => {
+      try {
+        let permission = await PushNotifications.checkPermissions();
+        if (permission.receive !== 'granted') {
+          permission = await PushNotifications.requestPermissions();
+        }
+        if (!mounted || permission.receive !== 'granted') return;
+
+        await PushNotifications.createChannel({
+          id: 'pettalopo_general',
+          name: 'Notifikasi Petta Lopo',
+          description: 'Pengumuman dan pesan Ambalan La Surullah Petta Lopo',
+          importance: 5,
+          sound: 'default',
+          vibration: true,
+          visibility: 1
+        });
+
+        listeners.push(await PushNotifications.addListener('registration', async ({ value }) => {
+          const uid = user.uid || user.username;
+          await saveUserPushToken(uid, value);
+        }));
+        listeners.push(await PushNotifications.addListener('registrationError', (error) => {
+          console.warn('Push registration failed:', error);
+        }));
+        listeners.push(await PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
+          const target = action.notification.data?.target;
+          if (target === 'chat') setActiveMenu('chat');
+          else if (target === 'program_kerja') setActiveMenu('program_kerja');
+          else if (target === 'pengumuman') setActiveMenu('dashboard');
+        }));
+        await PushNotifications.register();
+      } catch (error) {
+        console.warn('Push notification setup unavailable:', error);
+      }
+    };
+
+    setupPush();
+    return () => {
+      mounted = false;
+      listeners.forEach((listener) => listener.remove());
+    };
+  }, [user.uid, user.username]);
 
   // Persist and sync user
   useEffect(() => {
