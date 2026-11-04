@@ -14,11 +14,13 @@ import {
 import { UserAccount, ActiveMenu, ProgramKerjaItem } from '../../types';
 import { DEFAULT_PROGRAM_KERJA_ITEMS } from '../../data/defaultProgramKerja';
 import { LOGO_IMAGE_PATH } from '../../data/scoutData';
+import { JelajahiAmbalanView } from './JelajahiAmbalanView';
 
 interface HomeViewProps {
   onNavigateMenu?: (menu: ActiveMenu) => void;
   user?: UserAccount;
   programKerjaList?: ProgramKerjaItem[];
+  allMembers?: UserAccount[];
 }
 
 interface KalenderBulanItem {
@@ -179,7 +181,8 @@ function describeArcSegment(
 export const HomeView: React.FC<HomeViewProps> = ({
   onNavigateMenu,
   user,
-  programKerjaList = DEFAULT_PROGRAM_KERJA_ITEMS
+  programKerjaList = DEFAULT_PROGRAM_KERJA_ITEMS,
+  allMembers = []
 }) => {
   const activeName = user?.nama || 'Kakak Penegak';
   const activeGudep = user?.gudep || '10-035';
@@ -301,6 +304,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </div>
       </section>
 
+      <JelajahiAmbalanView allMembers={allMembers} />
+
       {/* 3. MENU CEPAT: PENCAPAIAN SKU, PENCAPAIAN SKK, QUIZ PRAMUKA */}
       <div className="space-y-2">
         <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider font-mono px-1">
@@ -350,9 +355,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#e51c24] transition-colors shrink-0" />
           </button>
 
-          {/* Quiz Pramuka */}
+          {/* Ruang Belajar */}
           <button
-            onClick={() => onNavigateMenu?.('quiz')}
+            onClick={() => onNavigateMenu?.('ruang_belajar')}
             className="bg-white rounded-2xl p-3.5 border border-slate-200 hover:border-red-300 shadow-xs flex items-center justify-between text-left group transition-all"
           >
             <div className="flex items-center gap-3 min-w-0">
