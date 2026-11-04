@@ -8,6 +8,14 @@ const config: CapacitorConfig = {
     androidScheme: 'https'
   },
   plugins: {
+    StatusBar: {
+      style: 'DARK',
+      backgroundColor: '#FFFFFF',
+      overlaysWebView: false
+    },
+    PushNotifications: {
+      presentationOptions: ['badge', 'sound', 'alert']
+    },
     SplashScreen: {
       launchShowDuration: 0,
       launchAutoHide: false,
