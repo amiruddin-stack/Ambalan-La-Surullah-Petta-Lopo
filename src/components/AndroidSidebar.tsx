@@ -6,7 +6,6 @@ import {
   Users, 
   Award, 
   GraduationCap, 
-  Brain,
   Settings,
   UserCheck,
   X, 
@@ -103,11 +102,6 @@ export const AndroidSidebar: React.FC<AndroidSidebarProps> = ({
       id: 'ruang_belajar' as ActiveMenu,
       label: 'Ruang Belajar',
       icon: GraduationCap
-    },
-    {
-      id: 'quiz' as ActiveMenu,
-      label: 'Quiz Pramuka',
-      icon: Brain
     },
     {
       id: 'pengaturan' as ActiveMenu,
