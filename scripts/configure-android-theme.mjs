@@ -25,19 +25,20 @@ if (!targetFiles.length) {
   throw new Error('Tidak menemukan styles.xml/themes.xml Android untuk diperbarui.');
 }
 
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&');
+
 for (const file of targetFiles) {
   let xml = fs.readFileSync(file, 'utf8');
   let changed = false;
 
   for (const name of themeNames) {
-    const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const stylePattern = new RegExp('(<style\\s+name="' + escaped + '"[^>]*>)([\\s\\S]*?)(</style>)');
+    const stylePattern = new RegExp('(<style\\s+name="' + escapeRegExp(name) + '"[^>]*>)([\\s\\S]*?)(</style>)');
     const match = xml.match(stylePattern);
     if (!match) continue;
 
     let body = match[2];
     for (const [attribute, value] of entries) {
-      const itemPattern = new RegExp('<item\\s+name="' + attribute.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '"[^>]*>[^<]*</item>');
+      const itemPattern = new RegExp('<item\\s+name="' + escapeRegExp(attribute) + '"[^>]*>[^<]*</item>');
       const item = '<item name="' + attribute + '">' + value + '</item>';
       if (itemPattern.test(body)) body = body.replace(itemPattern, item);
       else body += '\\n        ' + item;
