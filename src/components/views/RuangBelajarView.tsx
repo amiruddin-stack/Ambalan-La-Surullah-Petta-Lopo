@@ -23,9 +23,10 @@ import { extractTextFromPdf, formatMateriCantik } from '../../utils/pdfExtractor
 
 interface RuangBelajarViewProps {
   isAdmin?: boolean;
+  onOpenQuiz?: () => void;
 }
 
-export const RuangBelajarView: React.FC<RuangBelajarViewProps> = ({ isAdmin = true }) => {
+export const RuangBelajarView: React.FC<RuangBelajarViewProps> = ({ isAdmin = true, onOpenQuiz }) => {
   const [materiList, setMateriList] = useState<MateriBelajar[]>(() => {
     const saved = localStorage.getItem('ambalan_ruang_belajar_v3');
     if (saved) {
@@ -353,6 +354,7 @@ Kompas bidik adalah alat navigasi yang digunakan untuk menentukan arah mata angi
 
   return (
     <div className="space-y-4 pb-28">
+      <button onClick={onOpenQuiz} className="w-full rounded-2xl bg-[#e51c24] text-white p-4 text-left shadow-sm"><strong className="block text-sm font-black">Kuis Pramuka</strong><span className="block text-xs text-white/85 mt-1">Latihan dan uji wawasan kepramukaan</span></button>
       
       {/* Header Utama Ruang Belajar */}
       <div className="bg-white rounded-3xl p-4 sm:p-5 border-2 border-amber-400 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
