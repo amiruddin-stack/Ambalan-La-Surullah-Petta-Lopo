@@ -1,6 +1,7 @@
 import React from 'react';
 import { Home, Calendar, Flame, User, Cog } from 'lucide-react';
 import { ActiveMenu } from '../types';
+import { LOGO_IMAGE_PATH } from '../data/scoutData';
 
 interface FloatingBottomNavProps {
   activeMenu: ActiveMenu;
@@ -42,7 +43,7 @@ export const FloatingBottomNav: React.FC<FloatingBottomNavProps> = ({
                     : 'bg-transparent text-slate-500'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.8]'} ${tab.id === 'dewan_ambalan' ? 'animate-[spin_8s_linear_infinite]' : ''}`} />
+                {tab.id === 'dewan_ambalan' ? <span className="relative w-5 h-5 flex items-center justify-center"><Cog className="absolute inset-0 w-5 h-5 animate-[spin_8s_linear_infinite]"/><img src={LOGO_IMAGE_PATH} alt="Lambang Dewan Ambalan" className="absolute w-2.5 h-2.5 rounded-full object-cover [clip-path:circle(48%)]"/></span> : <Icon className={`w-4 h-4 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.8]'}`} />}
               </div>
 
               <span className={`text-[10px] mt-0.5 tracking-tight ${
