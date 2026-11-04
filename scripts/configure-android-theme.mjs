@@ -25,7 +25,7 @@ if (!targetFiles.length) {
   throw new Error('Tidak menemukan styles.xml/themes.xml Android untuk diperbarui.');
 }
 
-const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&');
+const escapeRegExp = (value) => value.replaceAll('.', '\\\\.');
 
 for (const file of targetFiles) {
   let xml = fs.readFileSync(file, 'utf8');
