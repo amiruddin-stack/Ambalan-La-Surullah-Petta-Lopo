@@ -237,7 +237,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         <div className="flex items-center justify-between gap-2">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#e51c24]">Kalender Ambalan</span>
-            <h3 className="text-base font-black text-slate-900">Agenda Bulan Ini</h3>
+            <h3 className="text-base font-black text-slate-900">Agenda Bulan {activeItem.bulan}</h3>
           </div>
           <span className="text-[10px] font-semibold text-slate-400">{selectedIdx + 1} / 12</span>
         </div>
